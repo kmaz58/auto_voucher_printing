@@ -1,0 +1,9 @@
+# ignore ALL .log files
+tesseract-ocr-w64-setup-5.5.0.20241111.exe
+SumatraPDF-3.5.2-64.exe
+pdf_watcher.log
+
+# ignore ALL files in ANY directory named temp
+logs/
+assets/
+output/
