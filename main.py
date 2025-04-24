@@ -46,6 +46,7 @@ WATCH_DIRS = {
     r"C:\epsilon net\Pylon Platform\Temp\PrintTemp": "a4",
     r"C:\monpetit\elta_vouchers": "a6",
     r"C:\Common_Downloads": "downloads",
+    r"C:\monpetit\ACS": "a4"
 }
 
 # Create a ToastNotifier instance for Windows notifications
@@ -140,7 +141,7 @@ def ocr_page_to_text(page, config="--psm 6"):
         logger.error(f"OCR error on page: {e}", exc_info=True)
         return ""
 
-def decide_action(ids_found, filepath):
+def decide_action_on_downloads(ids_found, filepath):
     """Determines the action based on extracted ID(s) and sends the file to the appropriate printer."""
     try:
         for id_ in ids_found:
@@ -187,10 +188,10 @@ def decide_paper_size(filepath):
         text = extract_text_from_pdf(filepath)
         if 'MyDHL' not in text:
             numbers = extract_9digit_numbers(text)
-            status, matched_id = decide_action(numbers, filepath)
+            status, matched_id = decide_action_on_downloads(numbers, filepath)
         else:
             text = extract_mydhl(text)
-            status, matched_id = decide_action(text, filepath)
+            status, matched_id = decide_action_on_downloads(text, filepath)
         logger.info(f"Status: {status}")
         logger.info(f"Matched ID: {matched_id}")
     except Exception as e:
@@ -204,8 +205,8 @@ def print_pdf(file_path, printer_name):
             "-print-to", f'"{printer_name}"',
             f'"{file_path}"'
         ]
-        subprocess.run(" ".join(cmd), shell=True)
         logger.info(f"Print command issued for {file_path} on {printer_name}")
+        subprocess.run(" ".join(cmd), shell=True)
     except Exception as e:
         logger.error(f"Error printing {file_path}: {e}", exc_info=True)
 
@@ -267,6 +268,7 @@ def handle_file_creation(folder, file_path):
     try:
         if action == "a4":
             printer_name = "Brother HL-L6250DN series Printer"
+            time.sleep(3)
             print_pdf(file_path, printer_name)
         elif action == "a6":
             printer_name = "SATO WS408 Petit"
@@ -276,21 +278,47 @@ def handle_file_creation(folder, file_path):
         else:
             logger.warning(f"Unknown action for folder: {folder}")
     except Exception as e:
-        logger.error(f"Error in handle_file_creation for {file_path}: {e}", exc_info=True)
+        logger.error(f"Error on handle_file_creation for {file_path}: {e}", exc_info=True)
 
 class PDFHandler(FileSystemEventHandler):
     """Handles file system events for PDFs."""
     def on_created(self, event):
         if not event.is_directory and event.src_path.lower().endswith(".pdf"):
             folder = os.path.dirname(event.src_path)
-            if folder in WATCH_DIRS:
-                handle_file_creation(folder, event.src_path)
+            try:
+                if folder in WATCH_DIRS:
+                    logger.info(event)
+                    # print("File Size: " + str(os.path.getsize(event.src_path.lower())))
+                    print(event.src_path)
+                    handle_file_creation(folder, event.src_path)
+
+                    # if os.path.getsize(event.src_path) == 0 :
+                    #     while os.path.getsize(event.src_path) == 0 :
+                    #         time.sleep(2)
+                    #         print("Waiting")
+                    #     handle_file_creation(folder, event.src_path)
+                    # else :
+                    #     handle_file_creation(folder, event.src_path)
+            except Exception as e:
+                logger.error(f"Error on_created for {event.src_path}: {e}", exc_info=True)
+
 
     def on_moved(self, event):
         if not event.is_directory and event.dest_path.lower().endswith(".pdf"):
             folder = os.path.dirname(event.dest_path)
             if folder in WATCH_DIRS:
-                handle_file_creation(folder, event.dest_path)
+                logger.info(event)
+                print("File Size: " + str(os.path.getsize(event.dest_path)))
+                try:
+                    if os.path.getsize(event.dest_path) == 0 :
+                        while os.path.getsize(event.dest_path) == 0 :
+                            time.sleep(2)
+                        handle_file_creation(folder, event.dest_path)
+                    else :
+                        handle_file_creation(folder, event.dest_path)
+                except Exception as e:
+                    logger.error(f"Error on_moved for {event.dest_path}: {e}", exc_info=True)
+
 
 # -----------------------
 # Observer Control Functions
