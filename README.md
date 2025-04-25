@@ -2,7 +2,7 @@
 A Windows tool that watches folders, OCR-scans PDFs, detects labels, and auto-prints via SumatraPDF. Runs from the system tray with Start/Stop, logs activity, and bundles Tesseract for easy setup.
 
 
-This Windows utility monitors multiple folders for newly added PDF files. It automatically processes each PDF using built-in text extraction and OCR (via Tesseract), identifies the document type based on content or barcode IDs, and sends it to the correct printer (A4 or A6) using SumatraPDF for silent printing.
+This Windows utility monitors multiple folders for newly added PDF files. It automatically processes each PDF using built-in text extraction and OCR (via Tesseract), identifies the document type based on content or voucher issuer IDs, and sends it to the correct printer (A4 or A6) using SumatraPDF for silent printing.
 
 Key Features
 Auto-Printing: Detects new PDFs and sends them to the appropriate printer automatically.
